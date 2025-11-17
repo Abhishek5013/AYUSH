@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { getQuiz, getUserAnswers, saveQuizResult } from '@/lib/quiz-store';
 import { provideFeedbackAction } from '@/lib/actions/quiz';
 import type { Quiz, UserAnswers, QuizResult } from '@/types';
+import { useUser } from '@/firebase';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -44,6 +45,7 @@ const LoadingSkeleton = () => (
 
 export function QuizResultsDisplay({ quizId }: { quizId: string }) {
     const router = useRouter();
+    const { user, isUserLoading } = useUser();
     const [quiz, setQuiz] = useState<Quiz | null>(null);
     const [userAnswers, setUserAnswers] = useState<UserAnswers | null>(null);
     const [feedbackState, setFeedbackState] = useState<FeedbackState>({});
@@ -73,14 +75,16 @@ export function QuizResultsDisplay({ quizId }: { quizId: string }) {
 
 
     useEffect(() => {
-        const quizData = getQuiz(quizId);
-        const answersData = getUserAnswers(quizId);
+        if (isUserLoading) return;
+        const userId = user?.uid;
+        const quizData = getQuiz(quizId, userId);
+        const answersData = getUserAnswers(quizId, userId);
 
         if (quizData && answersData) {
             setQuiz(quizData);
             setUserAnswers(answersData);
 
-            if (quizData.userName) {
+            if (userId) {
                 const resultToSave: QuizResult = {
                     quizId: quizData.quizId,
                     topic: quizData.topic,
@@ -89,6 +93,7 @@ export function QuizResultsDisplay({ quizId }: { quizId: string }) {
                     date: new Date().toISOString(),
                     correctAnswers: {},
                     userAnswers: answersData,
+                    userId: userId,
                     userName: quizData.userName,
                 };
                 
@@ -108,7 +113,7 @@ export function QuizResultsDisplay({ quizId }: { quizId: string }) {
 
         }
         setIsLoading(false);
-    }, [quizId]);
+    }, [quizId, user, isUserLoading]);
 
     useEffect(() => {
         if (quiz && userAnswers) {
@@ -118,7 +123,7 @@ export function QuizResultsDisplay({ quizId }: { quizId: string }) {
         }
     }, [quiz, userAnswers, correctAnswersMap, userAnswersMap]);
     
-    if (isLoading) {
+    if (isLoading || isUserLoading) {
         return <LoadingSkeleton />;
     }
 

@@ -14,6 +14,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ArrowLeft, ArrowRight, Check, Send } from 'lucide-react';
 import { PageHeader } from '../common/page-header';
 import { Skeleton } from '../ui/skeleton';
+import { useUser } from '@/firebase';
 
 function Question({
   question,
@@ -66,18 +67,21 @@ function Question({
 
 export function QuizTaker({ quizId }: { quizId: string }) {
   const router = useRouter();
+  const { user, isUserLoading } = useUser();
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<UserAnswers>({});
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const quizData = getQuiz(quizId);
+    if (isUserLoading) return;
+    const userId = user?.uid;
+    const quizData = getQuiz(quizId, userId);
     if (quizData) {
       setQuiz(quizData);
     }
     setIsLoading(false);
-  }, [quizId]);
+  }, [quizId, user, isUserLoading]);
 
   const handleAnswerChange = (answer: string) => {
     setUserAnswers((prev) => ({ ...prev, [currentQuestionIndex]: answer }));
@@ -96,11 +100,11 @@ export function QuizTaker({ quizId }: { quizId: string }) {
   };
 
   const handleSubmit = () => {
-    saveUserAnswers(quizId, userAnswers);
+    saveUserAnswers(quizId, userAnswers, user?.uid);
     router.push(`/quiz/${quizId}/results`);
   };
 
-  if (isLoading) {
+  if (isLoading || isUserLoading) {
     return (
         <div className="p-6">
             <Skeleton className="h-10 w-1/2 mb-2" />

@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { Label } from '../ui/label';
+import { useUser } from '@/firebase';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -31,6 +32,7 @@ export function QuizCreationForm() {
   const router = useRouter();
   const { toast } = useToast();
   const [state, formAction] = useActionState(generateQuizAction, {});
+  const { user } = useUser();
 
   useEffect(() => {
     if (state.error) {
@@ -45,23 +47,14 @@ export function QuizCreationForm() {
         title: 'Success!',
         description: `Your quiz on "${state.quiz.topic}" is ready.`,
       });
-      saveQuiz(state.quiz);
+      // Pass the user to associate the quiz with them
+      saveQuiz(state.quiz, user?.uid);
       router.push(`/quiz/${state.quiz.quizId}`);
     }
-  }, [state, router, toast]);
+  }, [state, router, toast, user]);
 
   return (
     <form action={formAction} className="space-y-4">
-      <div>
-        <Label htmlFor="userName" className="text-muted-foreground">Your Name</Label>
-        <Input
-          id="userName"
-          name="userName"
-          placeholder="Enter your name"
-          required
-          className="mt-1"
-        />
-      </div>
       <div>
         <Label htmlFor="topic" className="text-muted-foreground">Quiz Topic</Label>
         <Input
@@ -71,6 +64,8 @@ export function QuizCreationForm() {
           required
           className="mt-1"
         />
+        <input type="hidden" name="userName" value={user?.displayName || user?.email || 'Anonymous'} />
+        <input type="hidden" name="userId" value={user?.uid || ''} />
       </div>
       <SubmitButton />
     </form>

@@ -4,6 +4,7 @@ import { SidebarProvider, Sidebar, SidebarInset, SidebarTrigger } from '@/compon
 import { SidebarNav } from '@/components/common/sidebar-nav';
 import { Toaster } from '@/components/ui/toaster';
 import { AppLogo } from '@/components/common/app-logo';
+import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
   title: 'QuizWise - AI Powered Quizzes',
@@ -23,25 +24,27 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
-        <SidebarProvider>
-          <Sidebar>
-            <div className="flex flex-col h-full">
-              <div className="p-4">
-                <AppLogo />
+        <FirebaseClientProvider>
+          <SidebarProvider>
+            <Sidebar>
+              <div className="flex flex-col h-full">
+                <div className="p-4">
+                  <AppLogo />
+                </div>
+                <SidebarNav />
               </div>
-              <SidebarNav />
-            </div>
-          </Sidebar>
-          <SidebarInset>
-            <div className="md:hidden p-2 flex items-center border-b">
-              <SidebarTrigger />
-              <div className="ml-4">
-                 <AppLogo />
+            </Sidebar>
+            <SidebarInset>
+              <div className="md:hidden p-2 flex items-center border-b">
+                <SidebarTrigger />
+                <div className="ml-4">
+                   <AppLogo />
+                </div>
               </div>
-            </div>
-            {children}
-          </SidebarInset>
-        </SidebarProvider>
+              {children}
+            </SidebarInset>
+          </SidebarProvider>
+        </FirebaseClientProvider>
         <Toaster />
       </body>
     </html>

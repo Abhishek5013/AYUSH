@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { getQuizResults } from '@/lib/quiz-store';
 import type { QuizResult } from '@/types';
+import { useUser } from '@/firebase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Target } from 'lucide-react';
@@ -10,27 +11,20 @@ import Link from 'next/link';
 import { Button } from '../ui/button';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Image from 'next/image';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 export function ProgressChart() {
+  const { user, isUserLoading } = useUser();
   const [results, setResults] = useState<QuizResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedUser, setSelectedUser] = useState<string>('All Users');
-  const [users, setUsers] = useState<string[]>(['All Users']);
 
   useEffect(() => {
-    const allResults = getQuizResults();
-    setResults(allResults);
-    const uniqueUsers = ['All Users', ...Array.from(new Set(allResults.map(r => r.userName)))];
-    setUsers(uniqueUsers);
+    if (isUserLoading) return;
+    const userResults = getQuizResults(user?.uid);
+    setResults(userResults);
     setIsLoading(false);
-  }, []);
+  }, [user, isUserLoading]);
 
-  const filteredResults = selectedUser === 'All Users' 
-    ? results 
-    : results.filter(r => r.userName === selectedUser);
-
-  if (isLoading) {
+  if (isLoading || isUserLoading) {
     return (
         <Card>
             <CardHeader>
@@ -67,7 +61,7 @@ export function ProgressChart() {
     );
   }
 
-  const chartData = filteredResults.map(result => ({
+  const chartData = results.map(result => ({
     name: `${result.topic.substring(0, 15)}${result.topic.length > 15 ? '...' : ''} (${new Date(result.date).toLocaleDateString()})`,
     score: Math.round((result.score / result.totalQuestions) * 100),
     user: result.userName,
@@ -75,24 +69,12 @@ export function ProgressChart() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
+      <CardHeader>
             <CardTitle>Quiz Performance</CardTitle>
             <CardDescription>Scores are shown as percentages.</CardDescription>
-        </div>
-        <Select value={selectedUser} onValueChange={setSelectedUser}>
-            <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select a user" />
-            </SelectTrigger>
-            <SelectContent>
-                {users.map(user => (
-                    <SelectItem key={user} value={user}>{user}</SelectItem>
-                ))}
-            </SelectContent>
-        </Select>
       </CardHeader>
       <CardContent>
-        {filteredResults.length > 0 ? (
+        {results.length > 0 ? (
             <div className="h-96 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart
@@ -120,8 +102,8 @@ export function ProgressChart() {
             </div>
         ) : (
             <div className="flex flex-col items-center justify-center text-center p-8 h-96">
-                <CardTitle>No Results for {selectedUser}</CardTitle>
-                <CardDescription className="mt-2">This user hasn't completed any quizzes yet.</CardDescription>
+                <CardTitle>No Results Found</CardTitle>
+                <CardDescription className="mt-2">Complete a quiz to see your progress here.</CardDescription>
             </div>
         )}
       </CardContent>
