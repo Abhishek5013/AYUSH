@@ -24,14 +24,21 @@ export function saveQuiz(quiz: Quiz, userId?: string) {
 export function getQuiz(quizId: string, userId?: string): Quiz | null {
   if (!isClient) return null;
   // Try user-specific key first, then fallback to generic key
-  let key = getQuizStorageKey(quizId, userId);
-  let quizData = localStorage.getItem(key);
-  if (!quizData) {
-    key = getQuizStorageKey(quizId); // Fallback for quizzes created before login
-    quizData = localStorage.getItem(key);
+  let quizData: string | null = null;
+  if (userId) {
+    const userKey = getQuizStorageKey(quizId, userId);
+    quizData = localStorage.getItem(userKey);
   }
+  
+  // If not found with user-specific key, or if no user, try generic key
+  if (!quizData) {
+    const genericKey = getQuizStorageKey(quizId);
+    quizData = localStorage.getItem(genericKey);
+  }
+  
   return quizData ? JSON.parse(quizData) : null;
 }
+
 
 // --- User Answers ---
 export function saveUserAnswers(quizId: string, answers: UserAnswers, userId?: string) {
@@ -42,11 +49,16 @@ export function saveUserAnswers(quizId: string, answers: UserAnswers, userId?: s
 
 export function getUserAnswers(quizId: string, userId?: string): UserAnswers | null {
   if (!isClient) return null;
-  let key = getAnswersStorageKey(quizId, userId);
-  let answersData = localStorage.getItem(key);
+  // Try user-specific key first, then fallback to generic key
+  let answersData: string | null = null;
+  if(userId) {
+      const userKey = getAnswersStorageKey(quizId, userId);
+      answersData = localStorage.getItem(userKey);
+  }
+
   if (!answersData) {
-    key = getAnswersStorageKey(quizId);
-    answersData = localStorage.getItem(key);
+    const genericKey = getAnswersStorageKey(quizId);
+    answersData = localStorage.getItem(genericKey);
   }
   return answersData ? JSON.parse(answersData) : null;
 }
