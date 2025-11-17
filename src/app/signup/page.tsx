@@ -53,6 +53,7 @@ export default function SignUpPage() {
       // Create user profile in Firestore
       const userDocRef = doc(firestore, 'users', newUser.uid);
       const userProfileData = {
+        id: newUser.uid, // Add the user's ID to the data
         displayName: displayName,
         email: newUser.email,
         photoURL: newUser.photoURL || '',
