@@ -26,10 +26,13 @@ const QuestionSchema = z.object({
   correctAnswer: z.string().describe('The correct answer to the question.'),
 });
 
-const GenerateQuizOutputSchema = z.object({
-  quizId: z.string().describe('A unique ID for the quiz.'),
+const QuizDataSchema = z.object({
   topic: z.string().describe('The topic of the quiz.'),
   questions: z.array(QuestionSchema).describe('A list of questions for the quiz.'),
+});
+
+const GenerateQuizOutputSchema = QuizDataSchema.extend({
+  quizId: z.string().describe('A unique ID for the quiz.'),
 });
 export type GenerateQuizOutput = z.infer<typeof GenerateQuizOutputSchema>;
 
@@ -44,7 +47,7 @@ export async function generateQuiz(input: GenerateQuizInput): Promise<GenerateQu
 const generateQuizPrompt = ai.definePrompt({
   name: 'generateQuizPrompt',
   input: {schema: GenerateQuizInputSchema},
-  output: {schema: Omit<GenerateQuizOutput, 'quizId'>},
+  output: {schema: QuizDataSchema},
   prompt: `You are an expert quiz creator. Generate a {{numQuestions}}-question quiz about {{topic}}.
 The quiz should contain a mix of multiple-choice, true/false, and fill-in-the-blank questions.
 For multiple-choice questions, provide 4 options.
@@ -57,7 +60,7 @@ const generateQuizFlow = ai.defineFlow(
   {
     name: 'generateQuizFlow',
     inputSchema: GenerateQuizInputSchema,
-    outputSchema: Omit<GenerateQuizOutput, 'quizId'>,
+    outputSchema: QuizDataSchema,
   },
   async input => {
     const {output} = await generateQuizPrompt(input);
