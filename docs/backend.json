@@ -1,0 +1,305 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the QuizWise application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user entity."
+        },
+        "username": {
+          "type": "string",
+          "description": "The username of the user."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the user.",
+          "format": "email"
+        },
+        "registrationDate": {
+          "type": "string",
+          "description": "The date and time the user registered.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "username",
+        "email",
+        "registrationDate"
+      ]
+    },
+    "Quiz": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Quiz",
+      "type": "object",
+      "description": "Represents a quiz in the QuizWise application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the quiz entity."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the quiz."
+        },
+        "topic": {
+          "type": "string",
+          "description": "The main subject or category of the quiz."
+        },
+        "creationDate": {
+          "type": "string",
+          "description": "The date and time the quiz was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "topic",
+        "creationDate"
+      ]
+    },
+    "Question": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Question",
+      "type": "object",
+      "description": "Represents a question in a quiz.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the question entity."
+        },
+        "quizId": {
+          "type": "string",
+          "description": "Reference to Quiz. (Relationship: Quiz 1:N Question)"
+        },
+        "text": {
+          "type": "string",
+          "description": "The text of the question."
+        },
+        "type": {
+          "type": "string",
+          "description": "The type of question (e.g., multiple-choice, true/false, fill-in-the-blanks)."
+        },
+        "options": {
+          "type": "array",
+          "description": "Options for the question, applicable for multiple-choice questions.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "correctAnswer": {
+          "type": "string",
+          "description": "The correct answer to the question."
+        }
+      },
+      "required": [
+        "id",
+        "quizId",
+        "text",
+        "type",
+        "correctAnswer"
+      ]
+    },
+    "QuizAttempt": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "QuizAttempt",
+      "type": "object",
+      "description": "Represents a user's attempt at a quiz.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the quiz attempt entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N QuizAttempt)"
+        },
+        "quizId": {
+          "type": "string",
+          "description": "Reference to Quiz. (Relationship: Quiz 1:N QuizAttempt)"
+        },
+        "startTime": {
+          "type": "string",
+          "description": "The date and time the quiz attempt started.",
+          "format": "date-time"
+        },
+        "endTime": {
+          "type": "string",
+          "description": "The date and time the quiz attempt ended.",
+          "format": "date-time"
+        },
+        "score": {
+          "type": "number",
+          "description": "The user's score on the quiz attempt."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "quizId",
+        "startTime",
+        "endTime",
+        "score"
+      ]
+    },
+    "Feedback": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Feedback",
+      "type": "object",
+      "description": "Represents feedback provided to a user after a quiz attempt.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the feedback entity."
+        },
+        "quizAttemptId": {
+          "type": "string",
+          "description": "Reference to QuizAttempt. (Relationship: QuizAttempt 1:1 Feedback)"
+        },
+        "feedbackText": {
+          "type": "string",
+          "description": "The text of the feedback provided to the user."
+        },
+        "date": {
+          "type": "string",
+          "description": "The date and time the feedback was generated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "quizAttemptId",
+        "feedbackText",
+        "date"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profile data.  This is a private collection.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/quizzes/{quizId}",
+        "definition": {
+          "entityName": "Quiz",
+          "schema": {
+            "$ref": "#/backend/entities/Quiz"
+          },
+          "description": "Stores quiz data. Includes denormalized 'ownerId' field representing the quiz creator for authorization independence.",
+          "params": [
+            {
+              "name": "quizId",
+              "description": "The unique identifier of the quiz."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/quizzes/{quizId}/questions/{questionId}",
+        "definition": {
+          "entityName": "Question",
+          "schema": {
+            "$ref": "#/backend/entities/Question"
+          },
+          "description": "Stores questions for a specific quiz. Includes denormalized 'quizOwnerId' field from the parent quiz for authorization independence. The `quizOwnerId` field allows security rules to validate ownership without needing to read the Quiz document.",
+          "params": [
+            {
+              "name": "quizId",
+              "description": "The unique identifier of the quiz."
+            },
+            {
+              "name": "questionId",
+              "description": "The unique identifier of the question."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/quiz_attempts/{quizAttemptId}",
+        "definition": {
+          "entityName": "QuizAttempt",
+          "schema": {
+            "$ref": "#/backend/entities/QuizAttempt"
+          },
+          "description": "Stores quiz attempts for a specific user. The path inherently provides ownership (user) and includes the 'quizOwnerId' for potential admin access.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "quizAttemptId",
+              "description": "The unique identifier of the quiz attempt."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/quiz_attempts/{quizAttemptId}/feedback/{feedbackId}",
+        "definition": {
+          "entityName": "Feedback",
+          "schema": {
+            "$ref": "#/backend/entities/Feedback"
+          },
+          "description": "Stores feedback for a specific quiz attempt. Includes denormalized 'userOwnerId' field for authorization independence, which mirrors userId.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "quizAttemptId",
+              "description": "The unique identifier of the quiz attempt."
+            },
+            {
+              "name": "feedbackId",
+              "description": "The unique identifier of the feedback."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles_admin/{userId}",
+        "definition": {
+          "entityName": "role",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Collection to store admin roles. Existence of a document indicates admin privileges for the user. Uses existence check for authorization, not content.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure is designed to support the QuizWise application's features, including quiz generation, taking, score tracking, personalized feedback, and progress visualization, while adhering to the principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), QAPs (Queries are not Filters), and Invariants. It prioritizes security, scalability, and debuggability. Here's a breakdown of how these principles are applied:\n\n1.  **Authorization Independence:**\n\n    *   For `Quiz` documents, the `ownerId` field stores the `userId` of the quiz creator. This allows rules to directly check ownership without needing to read the `User` document.\n    *   For `Question` documents, `ownerId` is denormalized from the `Quiz` document via the `quizOwnerId` field. This allows direct validation of ownership. Any `members` map for collaborative quizzes will be stored directly within the `Quiz` document to avoid `get()` calls in the security rules.\n    *   For `QuizAttempt` documents, `ownerId` is used to store the user's ID, enabling simple rules based on the user's authentication. `quizOwnerId` from the `Quiz` document is also denormalized for admin purposes.\n    *   For `Feedback` documents, `ownerId` is denormalized from the `QuizAttempt` document via the `userOwnerId` field. This allows direct validation of ownership.\n\n2.  **Clarity of Intent:**\n\n    *   The structure uses explicit field names like `ownerId` and `quizOwnerId` to clearly indicate ownership relationships. Document descriptions explicitly detail the purpose of denormalized fields.\n    *   The use of path-based ownership (`/users/{userId}/quiz_attempts/{quizAttemptId}`) clearly indicates that a particular user owns the quiz attempt.\n\n3.  **DBAC (Database-Based Access Control):**\n\n    *   The application uses `request.auth.uid` for all security rules. Role-based access control is achieved via document existence. For example, admin privileges can be determined by the existence of a document in `/roles_admin/{userId}`.\n\n4.  **QAPs (Rules are not Filters):**\n\n    *   Collection segregation ensures that `list` operations are secure. For example, only the owner can list quiz attempts in `/users/{userId}/quiz_attempts`. Public quizzes could be stored in `/quizzes`, restricting listing to only published quizzes.\n    *   The structure is designed to avoid filtering based on document content within the rules themselves, leveraging structural segregation and appropriate indexing for efficient and secure queries.\n\n5.  **Invariants:**\n\n    *   Ownership invariants are enforced through the `ownerId` and `quizOwnerId` fields, ensuring that only the authorized user can modify certain documents.\n    *   Timestamps, where used, can be validated in rules to ensure their integrity.\n\n    *   Denormalized data like `quizOwnerId` are kept consistent via server-side functions triggered on updates to the `Quiz` documents. For instance, an update to a quiz will trigger a function to update the `quizOwnerId` fields for all associated `Question` documents.\n\n6.  **Structural Segregation:**\n\n    *   Private data (e.g., quiz attempts) is stored under the `/users/{userId}` path, while potentially public data (e.g., quizzes) can be stored in a top-level collection. This segregation allows us to define more specific security rules.\n\n7.  **Access Modeling:**\n\n    *   Path-based ownership is used for entities like `QuizAttempt` and `Question`.  Collaborative quizzes would implement a `members` map within the `Quiz` document.  Global roles (e.g., admin) are managed using the existence of documents in dedicated role collections.\n\nThis structure is designed to provide a secure, scalable, and easily debuggable Firestore setup for the QuizWise application."
+  }
+}
