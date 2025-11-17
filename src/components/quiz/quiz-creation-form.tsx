@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useEffect, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { generateQuizAction } from '@/lib/actions/quiz';
 import { useToast } from '@/hooks/use-toast';
@@ -30,7 +30,7 @@ function SubmitButton() {
 export function QuizCreationForm() {
   const router = useRouter();
   const { toast } = useToast();
-  const [state, formAction] = useFormState(generateQuizAction, {});
+  const [state, formAction] = useActionState(generateQuizAction, {});
 
   useEffect(() => {
     if (state.error) {
