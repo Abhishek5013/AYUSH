@@ -80,28 +80,31 @@ export function QuizResultsDisplay({ quizId }: { quizId: string }) {
             setQuiz(quizData);
             setUserAnswers(answersData);
 
-            const resultToSave: QuizResult = {
-                quizId: quizData.quizId,
-                topic: quizData.topic,
-                score: 0, // temp score
-                totalQuestions: quizData.questions.length,
-                date: new Date().toISOString(),
-                correctAnswers: {},
-                userAnswers: answersData
-            };
-            
-            let calculatedScore = 0;
-            const correctAnsw: Record<number, string> = {};
-            quizData.questions.forEach((q, i) => {
-                 const isCorrect = answersData[i]?.trim().toLowerCase() === q.correctAnswer.trim().toLowerCase();
-                if (isCorrect) calculatedScore++;
-                correctAnsw[i] = q.correctAnswer;
-            });
+            if (quizData.userName) {
+                const resultToSave: QuizResult = {
+                    quizId: quizData.quizId,
+                    topic: quizData.topic,
+                    score: 0, // temp score
+                    totalQuestions: quizData.questions.length,
+                    date: new Date().toISOString(),
+                    correctAnswers: {},
+                    userAnswers: answersData,
+                    userName: quizData.userName,
+                };
+                
+                let calculatedScore = 0;
+                const correctAnsw: Record<number, string> = {};
+                quizData.questions.forEach((q, i) => {
+                    const isCorrect = answersData[i]?.trim().toLowerCase() === q.correctAnswer.trim().toLowerCase();
+                    if (isCorrect) calculatedScore++;
+                    correctAnsw[i] = q.correctAnswer;
+                });
 
-            resultToSave.score = calculatedScore;
-            resultToSave.correctAnswers = correctAnsw;
-            
-            saveQuizResult(resultToSave);
+                resultToSave.score = calculatedScore;
+                resultToSave.correctAnswers = correctAnsw;
+                
+                saveQuizResult(resultToSave);
+            }
 
         }
         setIsLoading(false);
@@ -136,7 +139,7 @@ export function QuizResultsDisplay({ quizId }: { quizId: string }) {
 
     return (
         <div className="flex flex-col h-full">
-            <PageHeader title={`Results for: ${quiz.topic}`} description="Here's how you did. Check out your personalized feedback below." />
+            <PageHeader title={`Results for: ${quiz.topic}`} description={`Here's how ${quiz.userName || 'you'} did. Check out your personalized feedback below.`} />
             
             <main className="flex-1 overflow-y-auto p-4 md:p-6">
                 <div className="max-w-4xl mx-auto space-y-6">

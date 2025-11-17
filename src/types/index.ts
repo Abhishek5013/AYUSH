@@ -9,6 +9,7 @@ export interface Quiz {
   quizId: string;
   topic: string;
   questions: Question[];
+  userName?: string;
 }
 
 export interface UserAnswers {
@@ -23,4 +24,5 @@ export interface QuizResult {
   date: string;
   correctAnswers: Record<number, string>;
   userAnswers: UserAnswers;
+  userName: string;
 }

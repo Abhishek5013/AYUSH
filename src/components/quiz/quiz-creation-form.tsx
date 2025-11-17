@@ -53,6 +53,16 @@ export function QuizCreationForm() {
   return (
     <form action={formAction} className="space-y-4">
       <div>
+        <Label htmlFor="userName" className="text-muted-foreground">Your Name</Label>
+        <Input
+          id="userName"
+          name="userName"
+          placeholder="Enter your name"
+          required
+          className="mt-1"
+        />
+      </div>
+      <div>
         <Label htmlFor="topic" className="text-muted-foreground">Quiz Topic</Label>
         <Input
           id="topic"

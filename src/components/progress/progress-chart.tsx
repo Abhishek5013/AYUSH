@@ -10,15 +10,25 @@ import Link from 'next/link';
 import { Button } from '../ui/button';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Image from 'next/image';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 export function ProgressChart() {
   const [results, setResults] = useState<QuizResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedUser, setSelectedUser] = useState<string>('All Users');
+  const [users, setUsers] = useState<string[]>(['All Users']);
 
   useEffect(() => {
-    setResults(getQuizResults());
+    const allResults = getQuizResults();
+    setResults(allResults);
+    const uniqueUsers = ['All Users', ...Array.from(new Set(allResults.map(r => r.userName)))];
+    setUsers(uniqueUsers);
     setIsLoading(false);
   }, []);
+
+  const filteredResults = selectedUser === 'All Users' 
+    ? results 
+    : results.filter(r => r.userName === selectedUser);
 
   if (isLoading) {
     return (
@@ -57,43 +67,63 @@ export function ProgressChart() {
     );
   }
 
-  const chartData = results.map(result => ({
+  const chartData = filteredResults.map(result => ({
     name: `${result.topic.substring(0, 15)}${result.topic.length > 15 ? '...' : ''} (${new Date(result.date).toLocaleDateString()})`,
     score: Math.round((result.score / result.totalQuestions) * 100),
+    user: result.userName,
   }));
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Quiz Performance</CardTitle>
-        <CardDescription>Scores are shown as percentages.</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+            <CardTitle>Quiz Performance</CardTitle>
+            <CardDescription>Scores are shown as percentages.</CardDescription>
+        </div>
+        <Select value={selectedUser} onValueChange={setSelectedUser}>
+            <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select a user" />
+            </SelectTrigger>
+            <SelectContent>
+                {users.map(user => (
+                    <SelectItem key={user} value={user}>{user}</SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
       </CardHeader>
       <CardContent>
-        <div className="h-96 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={chartData}
-              margin={{
-                top: 5,
-                right: 30,
-                left: 20,
-                bottom: 5,
-              }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-              <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} unit="%" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--background))',
-                  borderColor: 'hsl(var(--border))'
-                }}
-              />
-              <Legend />
-              <Bar dataKey="score" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        {filteredResults.length > 0 ? (
+            <div className="h-96 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                    data={chartData}
+                    margin={{
+                        top: 5,
+                        right: 30,
+                        left: 20,
+                        bottom: 5,
+                    }}
+                    >
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} unit="%" />
+                    <Tooltip
+                        contentStyle={{
+                        backgroundColor: 'hsl(var(--background))',
+                        borderColor: 'hsl(var(--border))'
+                        }}
+                    />
+                    <Legend />
+                    <Bar dataKey="score" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                </ResponsiveContainer>
+            </div>
+        ) : (
+            <div className="flex flex-col items-center justify-center text-center p-8 h-96">
+                <CardTitle>No Results for {selectedUser}</CardTitle>
+                <CardDescription className="mt-2">This user hasn't completed any quizzes yet.</CardDescription>
+            </div>
+        )}
       </CardContent>
     </Card>
   );
