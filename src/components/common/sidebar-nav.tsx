@@ -3,7 +3,6 @@
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Home, BarChart2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import {
   SidebarMenu,
   SidebarMenuItem,
@@ -25,10 +24,8 @@ export function SidebarNav() {
           const isActive = pathname === item.href;
           return (
             <SidebarMenuItem key={item.label}>
-              <Link href={item.href} legacyBehavior passHref>
+              <Link href={item.href}>
                 <SidebarMenuButton
-                  as="a"
-                  href={item.href}
                   isActive={isActive}
                   tooltip={item.label}
                   className="justify-start"
