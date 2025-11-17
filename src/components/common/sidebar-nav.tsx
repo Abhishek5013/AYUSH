@@ -25,17 +25,15 @@ export function SidebarNav() {
           const isActive = pathname === item.href;
           return (
             <SidebarMenuItem key={item.label}>
-              <Link href={item.href}>
+              <Link href={item.href} passHref>
                 <SidebarMenuButton
                   isActive={isActive}
                   tooltip={item.label}
                   className="justify-start"
-                  asChild
+                  as="a"
                 >
-                  <div>
-                    <item.icon className="h-5 w-5" />
-                    <span>{item.label}</span>
-                  </div>
+                  <item.icon className="h-5 w-5" />
+                  <span>{item.label}</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
